@@ -1,0 +1,2290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIMA Radio CRM - Sistema de Gestión de Ventas</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0F172A;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+            border-bottom: 1px solid #334155;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 1.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: #2563EB;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1D4ED8;
+        }
+
+        .btn-success {
+            background: #16A34A;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #15803D;
+        }
+
+        .btn-secondary {
+            background: #475569;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #334155;
+        }
+
+        .btn-danger {
+            background: #DC2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #B91C1C;
+        }
+
+        .btn-small {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-edit {
+            background: #F59E0B;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .btn-delete {
+            background: #EF4444;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .main-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #334155;
+            overflow-x: auto;
+            padding-bottom: 0;
+        }
+
+        .nav-tab {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: none;
+            color: #94A3B8;
+            cursor: pointer;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+            font-size: 1rem;
+        }
+
+        .nav-tab.active {
+            color: #60A5FA;
+            border-bottom-color: #60A5FA;
+        }
+
+        .nav-tab:hover {
+            color: #93C5FD;
+        }
+
+        .tabs-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .tab {
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: #334155;
+            color: white;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background: #3B82F6;
+            color: white;
+        }
+
+        .tab:hover {
+            background: #475569;
+        }
+
+        .tab-add {
+            background: #475569;
+        }
+
+        .filters {
+            background: #1E293B;
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-input {
+            padding: 0.5rem 1rem;
+            border: 1px solid #475569;
+            background: #0F172A;
+            color: white;
+            border-radius: 0.5rem;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .search-input::placeholder {
+            color: #94A3B8;
+        }
+
+        .view-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .view-btn {
+            padding: 0.5rem 1rem;
+            background: #475569;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .view-btn.active {
+            background: #2563EB;
+        }
+
+        .kanban-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .kanban-column {
+            background: #1E293B;
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            min-height: 600px;
+        }
+
+        .column-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid;
+        }
+
+        .column-title {
+            font-weight: bold;
+            color: white;
+            flex: 1;
+        }
+
+        .column-count {
+            background: #334155;
+            color: #E2E8F0;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 1.125rem;
+            color: #1F2937;
+        }
+
+        .card-industry {
+            font-size: 0.875rem;
+            color: #6B7280;
+        }
+
+        .card-action {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #2563EB;
+            font-size: 1.25rem;
+            padding: 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.75rem;
+        }
+
+        .contact-info {
+            font-size: 0.875rem;
+            background: #F3F4F6;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-name {
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .contact-detail {
+            color: #6B7280;
+            margin-top: 0.25rem;
+        }
+
+        .contact-link {
+            color: #2563EB;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .contact-link:hover {
+            text-decoration: underline;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #2563EB;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 0.5rem;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #E5E7EB;
+            padding-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1F2937;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6B7280;
+        }
+
+        .modal-close:hover {
+            color: #1F2937;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .form-buttons .btn {
+            flex: 1;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .stat-label {
+            color: #6B7280;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2.25rem;
+            font-weight: bold;
+            color: #1F2937;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #1F2937;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #94A3B8;
+            font-size: 1.125rem;
+        }
+
+        .client-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .client-card {
+            background: #1E293B;
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        .client-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.75rem;
+        }
+
+        .client-card-title {
+            font-weight: bold;
+            font-size: 1.125rem;
+            color: #E2E8F0;
+        }
+
+        .client-card-industry {
+            font-size: 0.875rem;
+            color: #94A3B8;
+            margin-top: 0.25rem;
+        }
+
+        .client-contacts {
+            background: #0F172A;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .client-contact-item {
+            color: #E2E8F0;
+            margin-bottom: 0.5rem;
+        }
+
+        .client-contact-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .client-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .add-to-initiative-btn {
+            background: #2563EB;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+
+        .add-to-initiative-btn:hover {
+            background: #1D4ED8;
+        }
+
+        .delete-btn {
+            background: #DC2626;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: #B91C1C;
+        }
+
+        .status-list {
+            display: grid;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .status-item {
+            background: #0F172A;
+            border: 1px solid #334155;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-color {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 0.25rem;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .status-name {
+            color: #E2E8F0;
+            flex: 1;
+            margin-right: 1rem;
+        }
+
+        .status-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .kanban-container {
+                grid-template-columns: 1fr;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .filter-group {
+                width: 100%;
+            }
+
+            .dashboard {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .contact-section {
+            margin-bottom: 0.75rem;
+        }
+
+        .add-contact-btn {
+            background: #DBEAFE;
+            color: #2563EB;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        .add-contact-btn:hover {
+            background: #BFDBFE;
+        }
+
+        .contact-remove {
+            background: none;
+            border: none;
+            color: #DC2626;
+            cursor: pointer;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            text-decoration: underline;
+        }
+
+        .value-badge {
+            background: #DBEAFE;
+            color: #1E40AF;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+
+        .notes-section {
+            background: #FFFBEB;
+            border-left: 3px solid #F59E0B;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: #92400E;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        .emoji-btn {
+            background: #F3F4F6;
+            border: 2px solid #E5E7EB;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .emoji-btn:hover {
+            background: #E5E7EB;
+            transform: scale(1.1);
+        }
+
+        .emoji-btn.selected {
+            background: #2563EB;
+            border-color: #2563EB;
+            transform: scale(1.15);
+        }
+
+        .initiative-item {
+            background: #0F172A;
+            border: 1px solid #334155;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .initiative-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .initiative-color {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 0.375rem;
+        }
+
+        .initiative-name {
+            color: #E2E8F0;
+            font-weight: 600;
+        }
+
+        .initiative-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>📻 CIMA Radio CRM</h1>
+            <div class="header-buttons">
+                <button class="btn btn-primary" onclick="generateReport()">📥 Descargar Reporte</button>
+                <button class="btn btn-success" onclick="openAddClientModal()">➕ Nuevo Cliente</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Navegación Principal -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchMainView('initiatives')">🎯 Iniciativas</button>
+            <button class="nav-tab" onclick="switchMainView('clients')">👥 Clientes</button>
+            <button class="nav-tab" onclick="switchMainView('settings')">⚙️ Configuración</button>
+        </div>
+
+        <!-- VISTA: INICIATIVAS -->
+        <div id="initiativesView">
+            <!-- Tabs de Iniciativas -->
+            <div class="tabs-container" id="initiativeTabs"></div>
+
+            <!-- Filtros y Vistas -->
+            <div class="filters">
+                <div class="filter-group" style="flex: 2;">
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        id="searchInput" 
+                        placeholder="🔍 Buscar marca..."
+                        onkeyup="filterCompanies()"
+                    >
+                </div>
+                <div class="filter-group">
+                    <select class="search-input" id="statusFilter" onchange="filterCompanies()" style="flex: 1; margin: 0;">
+                        <option value="">Todos los Estados</option>
+                        <option value="custom">Cargar dinámicamente</option>
+                    </select>
+                </div>
+                <div class="view-buttons">
+                    <button class="view-btn active" onclick="switchView('kanban')">🎯 Tablero</button>
+                    <button class="view-btn" onclick="switchView('dashboard')">📊 Dashboard</button>
+                    <button class="view-btn" onclick="switchView('list')">📋 Lista</button>
+                </div>
+            </div>
+
+            <!-- Contenedor de Vistas -->
+            <div id="kanbanView"></div>
+            <div id="dashboardView" class="hidden"></div>
+            <div id="listView" class="hidden"></div>
+        </div>
+
+        <!-- VISTA: CLIENTES -->
+        <div id="clientsView" class="hidden">
+            <div class="filters" style="margin-bottom: 1.5rem; flex-wrap: wrap;">
+                <div class="filter-group" style="flex: 2; min-width: 300px;">
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        id="clientSearchInput" 
+                        placeholder="🔍 Buscar cliente..."
+                        onkeyup="filterClients()"
+                    >
+                </div>
+                <button class="btn btn-success" onclick="openAddClientModal()">➕ Nuevo</button>
+                <button class="btn btn-primary" onclick="downloadClientsCSV()">📥 Descargar</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('csvFileInput').click()">📤 Importar</button>
+                <button class="btn btn-secondary" onclick="downloadCSVTemplate()">📋 Plantilla</button>
+                <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="handleCSVUpload(event)">
+            </div>
+            <div id="importStatus" style="display: none; padding: 1rem; margin-bottom: 1rem; border-radius: 0.5rem; border-left: 4px solid;"></div>
+            <div id="clientsListContainer" class="client-list"></div>
+        </div>
+
+        <!-- VISTA: CONFIGURACIÓN -->
+        <div id="settingsView" class="hidden">
+            <div style="background: white; border-radius: 0.5rem; padding: 2rem; max-width: 800px;">
+                <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem; color: #1F2937;">⚙️ Gestionar Iniciativas</h2>
+                
+                <div style="margin-bottom: 2rem;">
+                    <button class="btn btn-success" onclick="openAddInitiativeModal()" style="margin-bottom: 1rem;">➕ Nueva Iniciativa</button>
+                    <div id="initiativesListContainer"></div>
+                </div>
+
+                <hr style="margin: 2rem 0;">
+
+                <h3 style="margin-bottom: 1rem; font-size: 1.25rem; color: #1F2937;">Estados Personalizables</h3>
+                <p style="color: #6B7280; margin-bottom: 1rem;">Selecciona una iniciativa para editar sus estados:</p>
+                
+                <select id="initiativeSelectForStates" class="form-input" onchange="loadInitiativeStates()">
+                    <option value="">Selecciona una iniciativa...</option>
+                </select>
+
+                <div id="statesListContainer" style="margin-top: 1.5rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Agregar Cliente -->
+    <div id="addClientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Agregar Nuevo Cliente</h2>
+                <button class="modal-close" onclick="closeAddClientModal()">✕</button>
+            </div>
+            <form onsubmit="saveClient(event)">
+                <div class="form-group">
+                    <label class="form-label">Nombre de la Marca/Empresa</label>
+                    <input type="text" class="form-input" id="clientName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Industria/Sector</label>
+                    <select class="form-input" id="clientIndustry" onchange="handleIndustryChange()">
+                        <!-- Las opciones se cargarán dinámicamente con JavaScript -->
+                    </select>
+                    <input type="text" class="form-input" id="clientIndustryCustom" placeholder="Especifica la industria personalizada" style="display: none; margin-top: 0.5rem;">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Contactos</label>
+                    <div id="contactsList"></div>
+                    <button type="button" class="add-contact-btn" onclick="addContactField()">+ Agregar Contacto</button>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-success">💾 Guardar Cliente</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAddClientModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Agregar Iniciativa -->
+    <div id="addInitiativeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="initiativeModalTitle">Agregar Nueva Iniciativa</h2>
+                <button class="modal-close" onclick="closeAddInitiativeModal()">✕</button>
+            </div>
+            <form onsubmit="saveInitiative(event)">
+                <div class="form-group">
+                    <label class="form-label">Nombre de la Iniciativa</label>
+                    <input type="text" class="form-input" id="initiativeName" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Color</label>
+                    <input type="color" class="form-input" id="initiativeColor" value="#FF6B35">
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-success" id="initiativeSaveBtn">✓ Crear Iniciativa</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAddInitiativeModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Agregar Cliente a Iniciativa -->
+    <div id="addClientToInitiativeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Agregar Cliente a Iniciativa</h2>
+                <button class="modal-close" onclick="closeAddClientToInitiativeModal()">✕</button>
+            </div>
+            <form onsubmit="addClientToInitiative(event)">
+                <input type="hidden" id="clientToAddId">
+                
+                <div class="form-group">
+                    <label class="form-label">Selecciona una Iniciativa</label>
+                    <select class="form-input" id="initiativeSelectForClient" required>
+                        <option value="">Elige una iniciativa...</option>
+                    </select>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-success">➕ Agregar Cliente</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAddClientToInitiativeModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Editar Estado -->
+    <div id="editStatusModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Editar Estado</h2>
+                <button class="modal-close" onclick="closeEditStatusModal()">✕</button>
+            </div>
+            <form onsubmit="saveEditStatus(event)">
+                <input type="hidden" id="editStatusId">
+                <input type="hidden" id="editStatusInitiativeId">
+
+                <div class="form-group">
+                    <label class="form-label">Emoji (opcional)</label>
+                    <div id="emojiSelector" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
+                        <!-- Los emojis se cargarán con JavaScript -->
+                    </div>
+                    <input type="hidden" id="editStatusEmoji" value="">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nombre del Estado</label>
+                    <input type="text" class="form-input" id="editStatusName" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Color</label>
+                    <input type="color" class="form-input" id="editStatusColor">
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-success">💾 Guardar</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditStatusModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Estado global
+        let clients = JSON.parse(localStorage.getItem('cimaClients')) || [];
+        let initiatives = JSON.parse(localStorage.getItem('cimaInitiatives')) || [
+            { 
+                id: 1, 
+                name: 'Paquete Premium', 
+                color: '#FF6B35',
+                states: [
+                    { id: 1, name: 'Prospecto', color: '#94A3B8', emoji: '📍' },
+                    { id: 2, name: 'Propuesta Enviada', color: '#F59E0B', emoji: '📤' },
+                    { id: 3, name: 'Presentada', color: '#3B82F6', emoji: '🎤' },
+                    { id: 4, name: 'Ganada', color: '#10B981', emoji: '✅' },
+                    { id: 5, name: 'Perdida', color: '#EF4444', emoji: '❌' }
+                ]
+            },
+            { 
+                id: 2, 
+                name: 'Paquete Estándar', 
+                color: '#004E89',
+                states: [
+                    { id: 1, name: 'Prospecto', color: '#94A3B8', emoji: '📍' },
+                    { id: 2, name: 'Propuesta Enviada', color: '#F59E0B', emoji: '📤' },
+                    { id: 3, name: 'Presentada', color: '#3B82F6', emoji: '🎤' },
+                    { id: 4, name: 'Ganada', color: '#10B981', emoji: '✅' },
+                    { id: 5, name: 'Perdida', color: '#EF4444', emoji: '❌' }
+                ]
+            },
+            { 
+                id: 3, 
+                name: 'Paquete Social Media', 
+                color: '#F77F00',
+                states: [
+                    { id: 1, name: 'Prospecto', color: '#94A3B8', emoji: '📍' },
+                    { id: 2, name: 'Propuesta Enviada', color: '#F59E0B', emoji: '📤' },
+                    { id: 3, name: 'Presentada', color: '#3B82F6', emoji: '🎤' },
+                    { id: 4, name: 'Ganada', color: '#10B981', emoji: '✅' },
+                    { id: 5, name: 'Perdida', color: '#EF4444', emoji: '❌' }
+                ]
+            },
+            { 
+                id: 4, 
+                name: 'Sponsorships', 
+                color: '#06A77D',
+                states: [
+                    { id: 1, name: 'Prospecto', color: '#94A3B8', emoji: '📍' },
+                    { id: 2, name: 'Propuesta Enviada', color: '#F59E0B', emoji: '📤' },
+                    { id: 3, name: 'Presentada', color: '#3B82F6', emoji: '🎤' },
+                    { id: 4, name: 'Ganada', color: '#10B981', emoji: '✅' },
+                    { id: 5, name: 'Perdida', color: '#EF4444', emoji: '❌' }
+                ]
+            },
+        ];
+
+        let activeInitiativeId = initiatives[0]?.id || 1;
+        let currentMainView = 'initiatives';
+        let currentView = 'kanban';
+        let contactFieldCount = 1;
+        let editingInitiativeId = null;
+        let editingStatusId = null;
+
+        // Guardar en localStorage
+        function saveToStorage() {
+            localStorage.setItem('cimaClients', JSON.stringify(clients));
+            localStorage.setItem('cimaInitiatives', JSON.stringify(initiatives));
+        }
+
+        // ============================================
+        // NAVEGACIÓN PRINCIPAL
+        // ============================================
+        function switchMainView(view) {
+            currentMainView = view;
+            
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('initiativesView').classList.toggle('hidden', view !== 'initiatives');
+            document.getElementById('clientsView').classList.toggle('hidden', view !== 'clients');
+            document.getElementById('settingsView').classList.toggle('hidden', view !== 'settings');
+
+            if (view === 'clients') {
+                filterClients();
+            } else if (view === 'settings') {
+                renderInitiativesList();
+                populateInitiativeSelectForStates();
+            }
+        }
+
+        // ============================================
+        // INICIATIVAS
+        // ============================================
+        function renderTabs() {
+            const container = document.getElementById('initiativeTabs');
+            container.innerHTML = initiatives.map(init => `
+                <button class="tab ${init.id === activeInitiativeId ? 'active' : ''}" 
+                        onclick="switchInitiative(${init.id})">
+                    ${init.name}
+                </button>
+            `).join('') + `
+                <button class="tab tab-add" onclick="openAddInitiativeModal()">➕ Iniciativa</button>
+            `;
+            updateStatusFilter();
+        }
+
+        function switchInitiative(id) {
+            activeInitiativeId = id;
+            renderTabs();
+            filterCompanies();
+        }
+
+        function updateStatusFilter() {
+            const initiative = initiatives.find(i => i.id === activeInitiativeId);
+            const statusFilter = document.getElementById('statusFilter');
+            
+            statusFilter.innerHTML = '<option value="">Todos los Estados</option>';
+            if (initiative && initiative.states) {
+                initiative.states.forEach(state => {
+                    statusFilter.innerHTML += `<option value="${state.id}">${state.name}</option>`;
+                });
+            }
+            statusFilter.value = '';
+        }
+
+        // ============================================
+        // CLIENTES
+        // ============================================
+        function renderClientsList() {
+            const container = document.getElementById('clientsListContainer');
+            const searchTerm = document.getElementById('clientSearchInput').value.toLowerCase();
+            
+            const filteredClients = clients.filter(c => 
+                c.name.toLowerCase().includes(searchTerm)
+            );
+
+            if (filteredClients.length === 0) {
+                container.innerHTML = '<div class="empty-state">No hay clientes registrados</div>';
+                return;
+            }
+
+            container.innerHTML = filteredClients.map(client => `
+                <div class="client-card">
+                    <div class="client-card-header">
+                        <div>
+                            <div class="client-card-title">${client.name}</div>
+                            <div class="client-card-industry">${client.industry || 'N/A'}</div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteClient(${client.id})">🗑️ Eliminar</button>
+                    </div>
+
+                    <div class="client-contacts">
+                        <strong style="color: #E2E8F0;">Contactos:</strong>
+                        ${client.contacts.map((contact, idx) => `
+                            <div class="client-contact-item">
+                                📍 <strong>${contact.name}</strong> (${contact.position || 'N/A'}) <br>
+                                📧 <a href="mailto:${contact.email}" class="contact-link">${contact.email}</a> <br>
+                                ${contact.phone ? `📞 <a href="tel:${contact.phone}" class="contact-link">${contact.phone}</a><br>` : ''}
+                                ${contact.birthDate ? `🎂 Nació: ${new Date(contact.birthDate).toLocaleDateString('es-ES')}` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="client-actions">
+                        <button class="add-to-initiative-btn" onclick="openAddClientToInitiativeModal(${client.id})">
+                            ➕ Agregar a Iniciativa
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterClients() {
+            renderClientsList();
+        }
+
+        function openAddClientModal() {
+            contactFieldCount = 1;
+            document.getElementById('clientName').value = '';
+            document.getElementById('clientIndustry').value = '';
+            document.getElementById('clientIndustryCustom').value = '';
+            document.getElementById('clientIndustryCustom').style.display = 'none';
+            
+            // Llenar el dropdown de industrias
+            const selectIndustry = document.getElementById('clientIndustry');
+            selectIndustry.innerHTML = '<option value="">Selecciona una industria...</option>';
+            standardIndustries.forEach(industry => {
+                const option = document.createElement('option');
+                option.value = industry;
+                option.textContent = industry;
+                selectIndustry.appendChild(option);
+            });
+            
+            renderContactFields();
+            document.getElementById('addClientModal').classList.add('show');
+        }
+
+        function handleIndustryChange() {
+            const select = document.getElementById('clientIndustry');
+            const customInput = document.getElementById('clientIndustryCustom');
+            
+            if (select.value === 'Otro') {
+                customInput.style.display = 'block';
+                customInput.focus();
+            } else {
+                customInput.style.display = 'none';
+                customInput.value = '';
+            }
+        }
+
+        function closeAddClientModal() {
+            document.getElementById('addClientModal').classList.remove('show');
+        }
+
+        function renderContactFields() {
+            let html = '';
+            for (let i = 0; i < contactFieldCount; i++) {
+                html += `
+                    <div style="background: #F3F4F6; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.75rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                            <input type="text" class="form-input" placeholder="Nombre" id="contact_firstname_${i}" required>
+                            <input type="text" class="form-input" placeholder="Apellido" id="contact_lastname_${i}" required>
+                        </div>
+                        <input type="email" class="form-input" placeholder="Email" id="contact_email_${i}" style="margin-top: 0.5rem;" required>
+                        <input type="tel" class="form-input" placeholder="Teléfono" id="contact_phone_${i}" style="margin-top: 0.5rem;">
+                        
+                        <div style="margin-top: 0.5rem;">
+                            <label style="font-size: 0.875rem; color: #6B7280; display: block; margin-bottom: 0.25rem;">Cargo/Posición</label>
+                            <select class="form-input" id="contact_position_${i}">
+                                <option value="">Selecciona un cargo...</option>
+                            </select>
+                            <input type="text" class="form-input" placeholder="Especifica otro cargo" id="contact_position_custom_${i}" style="display: none; margin-top: 0.5rem;">
+                        </div>
+                        
+                        <input type="date" class="form-input" placeholder="Fecha de Nacimiento (opcional)" id="contact_birthdate_${i}" style="margin-top: 0.5rem;">
+                        
+                        ${contactFieldCount > 1 ? `<button type="button" class="contact-remove" onclick="removeContactField(${i})">Eliminar Contacto</button>` : ''}
+                    </div>
+                `;
+            }
+            document.getElementById('contactsList').innerHTML = html;
+            
+            // Llenar los dropdowns de posiciones
+            for (let i = 0; i < contactFieldCount; i++) {
+                const selectPosition = document.getElementById(`contact_position_${i}`);
+                selectPosition.innerHTML = '<option value="">Selecciona un cargo...</option>';
+                standardPositions.forEach(position => {
+                    const option = document.createElement('option');
+                    option.value = position;
+                    option.textContent = position;
+                    selectPosition.appendChild(option);
+                });
+                
+                // Agregar evento para mostrar campo personalizado si selecciona "Otro"
+                selectPosition.addEventListener('change', function() {
+                    const customInput = document.getElementById(`contact_position_custom_${i}`);
+                    if (this.value === 'Otro') {
+                        customInput.style.display = 'block';
+                        customInput.focus();
+                    } else {
+                        customInput.style.display = 'none';
+                        customInput.value = '';
+                    }
+                });
+            }
+        }
+
+        function addContactField() {
+            contactFieldCount++;
+            renderContactFields();
+        }
+
+        function removeContactField(idx) {
+            if (contactFieldCount > 1) {
+                contactFieldCount--;
+                renderContactFields();
+            }
+        }
+
+        function saveClient(e) {
+            e.preventDefault();
+            const name = document.getElementById('clientName').value;
+            let industry = document.getElementById('clientIndustry').value;
+            
+            // Si seleccionó "Otro", usar el valor del campo personalizado
+            if (industry === 'Otro') {
+                industry = document.getElementById('clientIndustryCustom').value;
+                if (!industry) {
+                    alert('Por favor especifica la industria personalizada');
+                    return;
+                }
+            }
+
+            const contacts = [];
+            for (let i = 0; i < contactFieldCount; i++) {
+                const firstname = document.getElementById(`contact_firstname_${i}`)?.value;
+                const lastname = document.getElementById(`contact_lastname_${i}`)?.value;
+                const email = document.getElementById(`contact_email_${i}`)?.value;
+                
+                if (firstname && email) {
+                    let position = document.getElementById(`contact_position_${i}`)?.value;
+                    
+                    // Si es "Otro", usar el valor personalizado
+                    if (position === 'Otro') {
+                        position = document.getElementById(`contact_position_custom_${i}`)?.value || 'Otro';
+                    }
+                    
+                    contacts.push({
+                        name: `${firstname} ${lastname}`.trim(),
+                        firstName: firstname,
+                        lastName: lastname,
+                        position: position || '',
+                        email: email,
+                        phone: document.getElementById(`contact_phone_${i}`)?.value || '',
+                        birthDate: document.getElementById(`contact_birthdate_${i}`)?.value || ''
+                    });
+                }
+            }
+
+            if (!name) {
+                alert('Nombre de cliente requerido');
+                return;
+            }
+
+            if (contacts.length === 0) {
+                alert('Debe agregar al menos un contacto con nombre y email');
+                return;
+            }
+
+            const newClient = {
+                id: Date.now(),
+                name,
+                industry,
+                contacts,
+                createdAt: new Date().toISOString(),
+            };
+
+            clients.push(newClient);
+            saveToStorage();
+            closeAddClientModal();
+            if (currentMainView === 'clients') {
+                filterClients();
+            }
+        }
+
+        function deleteClient(id) {
+            if (confirm('¿Estás seguro de eliminar este cliente? También se eliminará de todas las iniciativas.')) {
+                clients = clients.filter(c => c.id !== id);
+                
+                // Eliminar de todas las iniciativas
+                initiatives.forEach(init => {
+                    if (init.proposals) {
+                        init.proposals = init.proposals.filter(p => p.clientId !== id);
+                    }
+                });
+
+                saveToStorage();
+                filterClients();
+                renderTabs();
+            }
+        }
+
+        // ============================================
+        // AGREGAR CLIENTE A INICIATIVA
+        // ============================================
+        function openAddClientToInitiativeModal(clientId) {
+            document.getElementById('clientToAddId').value = clientId;
+            
+            const selectEl = document.getElementById('initiativeSelectForClient');
+            selectEl.innerHTML = '<option value="">Elige una iniciativa...</option>';
+            
+            const client = clients.find(c => c.id === clientId);
+            initiatives.forEach(init => {
+                // Verificar si ya está en esta iniciativa
+                const exists = init.proposals && init.proposals.find(p => p.clientId === clientId);
+                if (!exists) {
+                    selectEl.innerHTML += `<option value="${init.id}">${init.name}</option>`;
+                }
+            });
+
+            document.getElementById('addClientToInitiativeModal').classList.add('show');
+        }
+
+        function closeAddClientToInitiativeModal() {
+            document.getElementById('addClientToInitiativeModal').classList.remove('show');
+        }
+
+        function addClientToInitiative(e) {
+            e.preventDefault();
+            const clientId = parseInt(document.getElementById('clientToAddId').value);
+            const initiativeId = parseInt(document.getElementById('initiativeSelectForClient').value);
+
+            const initiative = initiatives.find(i => i.id === initiativeId);
+            if (!initiative.proposals) {
+                initiative.proposals = [];
+            }
+
+            // Crear propuesta con el primer estado disponible
+            const firstState = initiative.states[0];
+            initiative.proposals.push({
+                clientId: clientId,
+                status: firstState.id,
+                statusName: firstState.name,
+                notes: '',
+                estimatedValue: '',
+                createdAt: new Date().toISOString(),
+            });
+
+            saveToStorage();
+            closeAddClientToInitiativeModal();
+            
+            if (currentMainView === 'initiatives') {
+                filterCompanies();
+            }
+        }
+
+        // ============================================
+        // GESTIÓN DE INICIATIVAS
+        // ============================================
+        function openAddInitiativeModal() {
+            editingInitiativeId = null;
+            document.getElementById('initiativeModalTitle').innerText = 'Agregar Nueva Iniciativa';
+            document.getElementById('initiativeSaveBtn').innerText = '✓ Crear Iniciativa';
+            document.getElementById('initiativeName').value = '';
+            document.getElementById('initiativeColor').value = '#FF6B35';
+            document.getElementById('addInitiativeModal').classList.add('show');
+        }
+
+        function closeAddInitiativeModal() {
+            document.getElementById('addInitiativeModal').classList.remove('show');
+        }
+
+        function openEditInitiativeModal(id) {
+            editingInitiativeId = id;
+            const initiative = initiatives.find(i => i.id === id);
+            
+            document.getElementById('initiativeModalTitle').innerText = 'Editar Iniciativa';
+            document.getElementById('initiativeSaveBtn').innerText = '💾 Guardar Cambios';
+            document.getElementById('initiativeName').value = initiative.name;
+            document.getElementById('initiativeColor').value = initiative.color;
+            document.getElementById('addInitiativeModal').classList.add('show');
+        }
+
+        function saveInitiative(e) {
+            e.preventDefault();
+            const name = document.getElementById('initiativeName').value;
+            const color = document.getElementById('initiativeColor').value;
+
+            if (!name) {
+                alert('Nombre de iniciativa requerido');
+                return;
+            }
+
+            if (editingInitiativeId) {
+                // Editar
+                const initiative = initiatives.find(i => i.id === editingInitiativeId);
+                initiative.name = name;
+                initiative.color = color;
+            } else {
+                // Crear nueva con estados estándar
+                const newInitiative = {
+                    id: Date.now(),
+                    name,
+                    color,
+                    proposals: [],
+                    states: standardStates.map((state, index) => ({
+                        id: Date.now() + index,
+                        name: state.name,
+                        color: state.color,
+                        emoji: state.emoji
+                    }))
+                };
+                initiatives.push(newInitiative);
+            }
+
+            saveToStorage();
+            closeAddInitiativeModal();
+            renderTabs();
+            
+            if (currentMainView === 'settings') {
+                renderInitiativesList();
+                populateInitiativeSelectForStates();
+            }
+        }
+
+        function renderInitiativesList() {
+            const container = document.getElementById('initiativesListContainer');
+            
+            container.innerHTML = initiatives.map(init => `
+                <div class="initiative-item">
+                    <div class="initiative-info">
+                        <div class="initiative-color" style="background-color: ${init.color}"></div>
+                        <div class="initiative-name">${init.name}</div>
+                    </div>
+                    <div class="initiative-actions">
+                        <button class="btn-edit" onclick="openEditInitiativeModal(${init.id})">✏️ Editar</button>
+                        <button class="btn-delete" onclick="deleteInitiative(${init.id})">🗑️ Eliminar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteInitiative(id) {
+            if (initiatives.length === 1) {
+                alert('Debe haber al menos una iniciativa');
+                return;
+            }
+
+            if (confirm('¿Estás seguro de eliminar esta iniciativa? Se perderá todo el seguimiento.')) {
+                initiatives = initiatives.filter(i => i.id !== id);
+                
+                if (activeInitiativeId === id) {
+                    activeInitiativeId = initiatives[0]?.id || 1;
+                }
+
+                saveToStorage();
+                renderTabs();
+                renderInitiativesList();
+                filterCompanies();
+            }
+        }
+
+        // ============================================
+        // GESTIÓN DE ESTADOS
+        // ============================================
+        function populateInitiativeSelectForStates() {
+            const select = document.getElementById('initiativeSelectForStates');
+            select.innerHTML = '<option value="">Selecciona una iniciativa...</option>';
+            initiatives.forEach(init => {
+                select.innerHTML += `<option value="${init.id}">${init.name}</option>`;
+            });
+        }
+
+        function loadInitiativeStates() {
+            const selectValue = document.getElementById('initiativeSelectForStates').value;
+            
+            if (!selectValue || selectValue === '') {
+                document.getElementById('statesListContainer').innerHTML = '';
+                return;
+            }
+
+            const initiativeId = parseInt(selectValue);
+            const initiative = initiatives.find(i => i.id === initiativeId);
+            
+            if (!initiative) {
+                document.getElementById('statesListContainer').innerHTML = '<p style="color: #666;">Iniciativa no encontrada</p>';
+                return;
+            }
+
+            const container = document.getElementById('statesListContainer');
+
+            container.innerHTML = `
+                <button class="btn btn-success" onclick="openAddStateModal(${initiativeId})" style="margin-bottom: 1rem;">
+                    ➕ Agregar Nuevo Estado
+                </button>
+                <div class="status-list">
+                    ${initiative.states && initiative.states.length > 0 ? initiative.states.map(state => `
+                        <div class="status-item">
+                            <div style="display: flex; align-items: center; flex: 1;">
+                                <span class="status-color" style="background-color: ${state.color}"></span>
+                                <span class="status-name">${state.emoji ? state.emoji + ' ' : ''}${state.name}</span>
+                            </div>
+                            <div class="status-actions">
+                                <button class="btn-edit" onclick="openEditStateModal(${initiativeId}, ${state.id})">✏️ Editar</button>
+                                <button class="btn-delete" onclick="deleteState(${initiativeId}, ${state.id})">🗑️ Eliminar</button>
+                            </div>
+                        </div>
+                    `).join('') : '<p style="color: #666;">Sin estados</p>'}
+                </div>
+            `;
+        }
+
+        let editingInitiativeIdForState = null;
+
+        const standardStates = [
+            { name: 'Prospecto', color: '#94A3B8', emoji: '📍' },
+            { name: 'Propuesta Enviada', color: '#F59E0B', emoji: '📤' },
+            { name: 'Presentada', color: '#3B82F6', emoji: '🎤' },
+            { name: 'Ganada', color: '#10B981', emoji: '✅' },
+            { name: 'Perdida', color: '#EF4444', emoji: '❌' }
+        ];
+
+        const standardIndustries = [
+            'Finanzas y Banca',
+            'Seguros',
+            'Alimentos y Bebidas',
+            'Tecnología',
+            'Telecomunicaciones',
+            'Retail y Comercio',
+            'Turismo y Hotelería',
+            'Transporte y Logística',
+            'Salud y Farmacéutica',
+            'Educación',
+            'Inmobiliario',
+            'Construcción',
+            'Manufactura',
+            'Energía y Utilidades',
+            'Medios y Entretenimiento',
+            'Publicidad y Marketing',
+            'Consultoría',
+            'Legal y Jurídico',
+            'Servicios Profesionales',
+            'Recursos Humanos',
+            'Contabilidad',
+            'Software y Desarrollo',
+            'Agricultura',
+            'Automotriz',
+            'Moda y Textiles',
+            'Ambiente y Sostenibilidad',
+            'Deporte y Fitness',
+            'Restaurantes y Catering',
+            'Distribución',
+            'Otro'
+        ];
+
+        const standardPositions = [
+            'Director Ejecutivo (CEO)',
+            'Director General',
+            'Director de Marketing',
+            'Director de Ventas',
+            'Director de Operaciones',
+            'Gerente General',
+            'Gerente de Marketing',
+            'Gerente de Ventas',
+            'Gerente de Publicidad',
+            'Gerente de Comunicaciones',
+            'Gerente de Proyectos',
+            'Coordinador de Marketing',
+            'Coordinador de Ventas',
+            'Coordinador de Publicidad',
+            'Especialista en Marketing Digital',
+            'Especialista en Redes Sociales',
+            'Community Manager',
+            'Jefe de Campaña',
+            'Jefe de Clientes',
+            'Ejecutivo de Cuenta',
+            'Ejecutivo de Ventas',
+            'Asistente de Marketing',
+            'Asistente de Ventas',
+            'Analista de Mercado',
+            'Productor',
+            'Productor de Contenido',
+            'Creativo',
+            'Diseñador',
+            'Publicista',
+            'Empresario/Propietario',
+            'Otro'
+        ];
+
+        const emojiList = ['📍', '📤', '🎤', '✅', '❌', '⭐', '🎯', '🔥', '💎', '🚀', '💼', '📊', '📈', '💰', '🏆', '⏰', '🔔', '📞', '✉️', '💡', '🎁', '🌟', '👥', '📋', '✏️', '🗂️', '⚡', '🎨', '🔐', '📅'];
+
+        function openEmojiSelector() {
+            const container = document.getElementById('emojiSelector');
+            container.innerHTML = emojiList.map(emoji => `
+                <button type="button" class="emoji-btn ${document.getElementById('editStatusEmoji').value === emoji ? 'selected' : ''}" 
+                        onclick="selectEmoji('${emoji}')">
+                    ${emoji}
+                </button>
+            `).join('');
+        }
+
+        function selectEmoji(emoji) {
+            document.getElementById('editStatusEmoji').value = emoji;
+            document.querySelectorAll('.emoji-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.textContent === emoji) {
+                    btn.classList.add('selected');
+                }
+            });
+        }
+
+        function openAddStateModal(initiativeId) {
+            editingInitiativeIdForState = initiativeId;
+            editingStatusId = null;
+            document.getElementById('editStatusName').value = '';
+            document.getElementById('editStatusColor').value = '#94A3B8';
+            document.getElementById('editStatusEmoji').value = '';
+            openEmojiSelector();
+            document.getElementById('editStatusModal').classList.add('show');
+        }
+
+        function openEditStateModal(initiativeId, stateId) {
+            editingInitiativeIdForState = initiativeId;
+            editingStatusId = stateId;
+            
+            const initiative = initiatives.find(i => i.id === initiativeId);
+            const state = initiative.states.find(s => s.id === stateId);
+            
+            document.getElementById('editStatusName').value = state.name;
+            document.getElementById('editStatusColor').value = state.color;
+            document.getElementById('editStatusEmoji').value = state.emoji || '';
+            openEmojiSelector();
+            document.getElementById('editStatusModal').classList.add('show');
+        }
+
+        function closeEditStatusModal() {
+            document.getElementById('editStatusModal').classList.remove('show');
+        }
+
+        function saveEditStatus(e) {
+            e.preventDefault();
+            const name = document.getElementById('editStatusName').value;
+            const color = document.getElementById('editStatusColor').value;
+            const emoji = document.getElementById('editStatusEmoji').value;
+
+            if (!name) {
+                alert('Nombre del estado requerido');
+                return;
+            }
+
+            const initiative = initiatives.find(i => i.id === editingInitiativeIdForState);
+
+            if (editingStatusId) {
+                // Editar
+                const state = initiative.states.find(s => s.id === editingStatusId);
+                state.name = name;
+                state.color = color;
+                state.emoji = emoji;
+            } else {
+                // Crear nuevo
+                initiative.states.push({
+                    id: Date.now(),
+                    name,
+                    color,
+                    emoji
+                });
+            }
+
+            saveToStorage();
+            closeEditStatusModal();
+            loadInitiativeStates();
+            updateStatusFilter();
+            filterCompanies();
+        }
+
+        function deleteState(initiativeId, stateId) {
+            const initiative = initiatives.find(i => i.id === initiativeId);
+            
+            if (initiative.states.length === 1) {
+                alert('Debe haber al menos un estado');
+                return;
+            }
+
+            if (confirm('¿Estás seguro de eliminar este estado?')) {
+                initiative.states = initiative.states.filter(s => s.id !== stateId);
+                
+                // Eliminar propuestas con este estado
+                if (initiative.proposals) {
+                    initiative.proposals = initiative.proposals.filter(p => p.status !== stateId);
+                }
+
+                saveToStorage();
+                loadInitiativeStates();
+                filterCompanies();
+            }
+        }
+
+        // ============================================
+        // VISTA DE PROPUESTAS
+        // ============================================
+        function getProposalState(clientId, initiativeId) {
+            const initiative = initiatives.find(i => i.id === initiativeId);
+            if (!initiative || !initiative.proposals) return null;
+            return initiative.proposals.find(p => p.clientId === clientId) || null;
+        }
+
+        function updateProposalState(clientId, initiativeId, updates) {
+            const initiative = initiatives.find(i => i.id === initiativeId);
+            if (!initiative) return;
+
+            if (!initiative.proposals) {
+                initiative.proposals = [];
+            }
+
+            const proposal = initiative.proposals.find(p => p.clientId === clientId);
+            if (proposal) {
+                Object.assign(proposal, updates);
+            }
+
+            saveToStorage();
+            filterCompanies();
+        }
+
+        function getProposalsByInitiative() {
+            const initiative = initiatives.find(i => i.id === activeInitiativeId);
+            if (!initiative || !initiative.proposals) return [];
+
+            return initiative.proposals.map(proposal => {
+                const client = clients.find(c => c.id === proposal.clientId);
+                return {
+                    ...proposal,
+                    client: client
+                };
+            }).filter(p => p.client);
+        }
+
+        function renderCompanyCard(proposal) {
+            const client = proposal.client;
+            const initiative = initiatives.find(i => i.id === activeInitiativeId);
+            const state = initiative.states.find(s => s.id === proposal.status);
+
+            return `
+                <div class="card" style="border-left-color: ${state?.color || '#94A3B8'}">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">${client.name}</div>
+                            <div class="card-industry">${client.industry || 'N/A'}</div>
+                        </div>
+                        <button class="card-action" onclick="removeClientFromInitiative(${client.id}, ${activeInitiativeId})">🗑️</button>
+                    </div>
+
+                    <div style="margin-bottom: 0.75rem;">
+                        <span class="status-badge" style="background-color: ${state?.color || '#94A3B8'}">${state?.emoji ? state.emoji + ' ' : ''}${state?.name || 'N/A'}</span>
+                    </div>
+
+                    <div class="contact-section">
+                        ${client.contacts.map((contact, idx) => `
+                            <div class="contact-info">
+                                <div class="contact-name">${contact.name}</div>
+                                <div class="contact-detail">📍 ${contact.position || 'N/A'}</div>
+                                <div class="contact-detail">
+                                    <a href="mailto:${contact.email}" class="contact-link">${contact.email}</a>
+                                </div>
+                                ${contact.phone ? `<div class="contact-detail">
+                                    <a href="tel:${contact.phone}" class="contact-link">📞 ${contact.phone}</a>
+                                </div>` : ''}
+                                ${contact.birthDate ? `<div class="contact-detail">🎂 ${new Date(contact.birthDate).toLocaleDateString('es-ES')}</div>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    ${proposal.estimatedValue ? `<div class="value-badge">💰 $${proposal.estimatedValue}</div>` : ''}
+                    ${proposal.notes ? `<div class="notes-section">💬 ${proposal.notes}</div>` : ''}
+
+                    <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <select onchange="updateProposalState(${client.id}, ${activeInitiativeId}, {status: parseInt(this.value)})" class="form-select">
+                            ${initiatives.find(i => i.id === activeInitiativeId)?.states.map(s => `
+                                <option value="${s.id}" ${proposal.status === s.id ? 'selected' : ''}>${s.emoji ? s.emoji + ' ' : ''}${s.name}</option>
+                            `).join('')}
+                        </select>
+
+                        <textarea class="form-textarea" placeholder="Notas o comentarios..." 
+                                  onchange="updateProposalState(${client.id}, ${activeInitiativeId}, {notes: this.value})">${proposal.notes || ''}</textarea>
+
+                        <input type="number" class="form-input" placeholder="Valor estimado..." 
+                               value="${proposal.estimatedValue || ''}"
+                               onchange="updateProposalState(${client.id}, ${activeInitiativeId}, {estimatedValue: this.value})">
+                    </div>
+                </div>
+            `;
+        }
+
+        function removeClientFromInitiative(clientId, initiativeId) {
+            if (confirm('¿Eliminar este cliente de la iniciativa?')) {
+                const initiative = initiatives.find(i => i.id === initiativeId);
+                if (initiative && initiative.proposals) {
+                    initiative.proposals = initiative.proposals.filter(p => p.clientId !== clientId);
+                }
+                saveToStorage();
+                filterCompanies();
+            }
+        }
+
+        function filterCompanies() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const proposals = getProposalsByInitiative();
+
+            let filtered = proposals.filter(p => {
+                const matchSearch = p.client.name.toLowerCase().includes(searchTerm);
+                if (!statusFilter) return matchSearch;
+                return matchSearch && p.status === parseInt(statusFilter);
+            });
+
+            renderViews(filtered);
+        }
+
+        function renderViews(filtered) {
+            const initiative = initiatives.find(i => i.id === activeInitiativeId);
+            
+            // Vista Kanban
+            let kanban = '<div class="kanban-container">';
+            initiative.states.forEach(state => {
+                const companiesInStatus = filtered.filter(p => p.status === state.id);
+                kanban += `
+                    <div class="kanban-column">
+                        <div class="column-header" style="border-bottom-color: ${state.color}">
+                            <span class="column-title">${state.emoji ? state.emoji + ' ' : ''}${state.name}</span>
+                            <span class="column-count">${companiesInStatus.length}</span>
+                        </div>
+                        <div>
+                            ${companiesInStatus.map(p => renderCompanyCard(p)).join('')}
+                            ${companiesInStatus.length === 0 ? '<div class="empty-state">Sin clientes</div>' : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            kanban += '</div>';
+            document.getElementById('kanbanView').innerHTML = kanban;
+
+            // Vista Lista
+            let list = '<div>';
+            list += filtered.map(p => renderCompanyCard(p)).join('');
+            list += filtered.length === 0 ? '<div class="empty-state">No hay clientes</div>' : '';
+            list += '</div>';
+            document.getElementById('listView').innerHTML = list;
+
+            // Vista Dashboard
+            renderDashboard(filtered, initiative);
+        }
+
+        function renderDashboard(filtered, initiative) {
+            const stats = {};
+            initiative.states.forEach(state => {
+                stats[state.id] = filtered.filter(p => p.status === state.id).length;
+            });
+
+            const total = filtered.length;
+            const won = stats[initiative.states.find(s => s.name.includes('Ganada'))?.id] || 0;
+            const conversionRate = total > 0 ? ((won / total) * 100).toFixed(1) : 0;
+
+            const chartLabels = initiative.states.map(s => (s.emoji ? s.emoji + ' ' : '') + s.name);
+            const chartData = initiative.states.map(s => stats[s.id] || 0);
+            const chartColors = initiative.states.map(s => s.color);
+
+            let dashboard = `
+                <div class="dashboard">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Clientes</div>
+                        <div class="stat-value">${total}</div>
+                    </div>
+                    ${initiative.states.map(state => `
+                        <div class="stat-card">
+                            <div class="stat-label">${state.emoji ? state.emoji + ' ' : ''}${state.name}</div>
+                            <div class="stat-value" style="color: ${state.color}">${stats[state.id] || 0}</div>
+                        </div>
+                    `).join('')}
+                    <div class="stat-card">
+                        <div class="stat-label">Tasa Conversión</div>
+                        <div class="stat-value" style="color: #06A77D">${conversionRate}%</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3 class="chart-title">Estado de Propuestas</h3>
+                    <canvas id="statusChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h3 class="chart-title">Distribución</h3>
+                    <canvas id="distributionChart"></canvas>
+                </div>
+            `;
+
+            document.getElementById('dashboardView').innerHTML = dashboard;
+
+            setTimeout(() => {
+                const ctx1 = document.getElementById('statusChart')?.getContext('2d');
+                if (ctx1) {
+                    new Chart(ctx1, {
+                        type: 'bar',
+                        data: {
+                            labels: chartLabels,
+                            datasets: [{
+                                label: 'Cantidad',
+                                data: chartData,
+                                backgroundColor: chartColors,
+                                borderRadius: 8,
+                                borderSkipped: false,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true } }
+                        }
+                    });
+                }
+
+                const ctx2 = document.getElementById('distributionChart')?.getContext('2d');
+                if (ctx2) {
+                    new Chart(ctx2, {
+                        type: 'doughnut',
+                        data: {
+                            labels: chartLabels,
+                            datasets: [{
+                                data: chartData,
+                                backgroundColor: chartColors,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { position: 'bottom' }
+                            }
+                        }
+                    });
+                }
+            }, 100);
+        }
+
+        function switchView(view) {
+            currentView = view;
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('kanbanView').classList.toggle('hidden', view !== 'kanban');
+            document.getElementById('dashboardView').classList.toggle('hidden', view !== 'dashboard');
+            document.getElementById('listView').classList.toggle('hidden', view !== 'list');
+        }
+
+        // ============================================
+        // REPORTES
+        // ============================================
+        function generateReport() {
+            const initiative = initiatives.find(i => i.id === activeInitiativeId);
+            const proposals = getProposalsByInitiative();
+
+            const stats = {};
+            initiative.states.forEach(state => {
+                stats[state.name] = proposals.filter(p => p.status === state.id).length;
+            });
+
+            let csv = 'REPORTE DE VENTAS - CIMA RADIO\n';
+            csv += `Iniciativa: ${initiative.name}\n`;
+            csv += `Fecha: ${new Date().toLocaleDateString('es-ES')}\n\n`;
+
+            csv += 'ESTADÍSTICAS\n';
+            csv += `Total de Clientes,${proposals.length}\n`;
+            Object.keys(stats).forEach(state => {
+                csv += `${state},${stats[state]}\n`;
+            });
+
+            csv += '\nDETALLE DE CLIENTES\n';
+            csv += 'Cliente,Industria,Contactos,Estado,Valor Estimado,Notas\n';
+            proposals.forEach(p => {
+                const contacts = p.client.contacts.map(ct => `${ct.name} (${ct.position}) - ${ct.email}`).join(' | ');
+                const state = initiative.states.find(s => s.id === p.status);
+                csv += `"${p.client.name}","${p.client.industry}","${contacts}","${state?.name || 'N/A'}","${p.estimatedValue || ''}","${p.notes || ''}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Reporte_${initiative.name}_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        // ============================================
+        // IMPORTAR/EXPORTAR CSV
+        // ============================================
+        function downloadClientsCSV() {
+            if (clients.length === 0) {
+                alert('No hay clientes para descargar');
+                return;
+            }
+
+            let csv = 'Marca,Industria,Nombre Contacto,Cargo,Email,Teléfono\n';
+            
+            clients.forEach(client => {
+                if (client.contacts.length === 0) {
+                    // Si no hay contactos, agregar una fila con solo datos de la empresa
+                    csv += `"${client.name}","${client.industry || ''}","","","",""\n`;
+                } else {
+                    // Una fila por cada contacto
+                    client.contacts.forEach(contact => {
+                        csv += `"${client.name}","${client.industry || ''}","${contact.name}","${contact.position || ''}","${contact.email || ''}","${contact.phone || ''}"\n`;
+                    });
+                }
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Clientes_CIMA_Radio_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        function downloadCSVTemplate() {
+            const template = `Marca,Industria,Nombre Contacto,Cargo,Email,Teléfono
+"Banco BHD","Finanzas","Juan Pérez","Director de Marketing","juan@bhd.com","809-123-4567"
+"Banco BHD","Finanzas","María García","Gerente de Publicidad","maria@bhd.com","809-765-4321"
+"Cervecería Nacional","Bebidas","Carlos López","Jefe de Ventas","carlos@cerveceria.com","809-555-1234"
+"Industrias Lácteas","Alimentación","Rosa Martínez","Coordinadora de Marketing","rosa@lacteas.com","809-555-5678"
+"Telefonía Dominicana","Telecomunicaciones","Pedro Sánchez","Gerente Regional","pedro@telefonica.com","809-555-9999"`;
+
+            const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Plantilla_Clientes.csv';
+            link.click();
+        }
+
+        function handleCSVUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const csv = e.target.result;
+                    const lines = csv.trim().split('\n');
+                    
+                    if (lines.length < 2) {
+                        showImportStatus('El archivo CSV está vacío', 'error');
+                        return;
+                    }
+
+                    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                    
+                    // Validar columnas requeridas
+                    const requiredColumns = ['marca', 'industria', 'nombre contacto', 'cargo', 'email', 'teléfono'];
+                    const hasRequiredColumns = requiredColumns.every(col => 
+                        headers.some(h => h.includes(col.split(' ')[0]))
+                    );
+
+                    if (!hasRequiredColumns) {
+                        showImportStatus('El archivo no tiene las columnas requeridas. Usa la plantilla descargada.', 'error');
+                        return;
+                    }
+
+                    // Procesar datos
+                    const data = {};
+                    let rowCount = 0;
+                    let errorCount = 0;
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+
+                        try {
+                            const values = parseCSVLine(line);
+                            
+                            if (values.length < 6) {
+                                errorCount++;
+                                continue;
+                            }
+
+                            const marca = values[0].trim();
+                            const industria = values[1].trim();
+                            const nombreContacto = values[2].trim();
+                            const cargo = values[3].trim();
+                            const email = values[4].trim();
+                            const telefono = values[5].trim();
+
+                            if (!marca || !nombreContacto) {
+                                errorCount++;
+                                continue;
+                            }
+
+                            // Agrupar por marca
+                            if (!data[marca]) {
+                                data[marca] = {
+                                    name: marca,
+                                    industry: industria,
+                                    contacts: []
+                                };
+                            }
+
+                            // Agregar contacto
+                            data[marca].contacts.push({
+                                name: nombreContacto,
+                                position: cargo,
+                                email: email,
+                                phone: telefono
+                            });
+
+                            rowCount++;
+                        } catch (err) {
+                            errorCount++;
+                        }
+                    }
+
+                    if (rowCount === 0) {
+                        showImportStatus('No se pudieron procesar filas válidas del archivo', 'error');
+                        return;
+                    }
+
+                    // Crear clientes
+                    let addedCount = 0;
+                    let duplicateCount = 0;
+
+                    Object.values(data).forEach(clientData => {
+                        // Verificar si ya existe
+                        const exists = clients.find(c => c.name.toLowerCase() === clientData.name.toLowerCase());
+                        
+                        if (exists) {
+                            duplicateCount++;
+                            // Opcionalmente: agregar contactos faltantes al cliente existente
+                            clientData.contacts.forEach(newContact => {
+                                const contactExists = exists.contacts.some(c => 
+                                    c.email === newContact.email || c.name === newContact.name
+                                );
+                                if (!contactExists && newContact.email) {
+                                    exists.contacts.push(newContact);
+                                }
+                            });
+                        } else {
+                            clients.push({
+                                id: Date.now() + Math.random(),
+                                ...clientData,
+                                createdAt: new Date().toISOString()
+                            });
+                            addedCount++;
+                        }
+                    });
+
+                    saveToStorage();
+                    filterClients();
+
+                    let message = `✓ Importación completada!<br>`;
+                    message += `Nuevos clientes: ${addedCount}<br>`;
+                    message += `Clientes duplicados (actualizados): ${duplicateCount}<br>`;
+                    message += `Contactos procesados: ${rowCount}`;
+                    
+                    if (errorCount > 0) {
+                        message += `<br>⚠️ Filas con error: ${errorCount}`;
+                    }
+
+                    showImportStatus(message, 'success');
+
+                    // Limpiar input
+                    document.getElementById('csvFileInput').value = '';
+
+                } catch (error) {
+                    showImportStatus('Error al procesar el archivo: ' + error.message, 'error');
+                }
+            };
+
+            reader.readAsText(file);
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let insideQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+
+                if (char === '"') {
+                    if (insideQuotes && nextChar === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        insideQuotes = !insideQuotes;
+                    }
+                } else if (char === ',' && !insideQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+
+            result.push(current);
+            return result;
+        }
+
+        function showImportStatus(message, type) {
+            const statusDiv = document.getElementById('importStatus');
+            statusDiv.innerHTML = message;
+            statusDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                statusDiv.style.backgroundColor = '#D1FAE5';
+                statusDiv.style.color = '#065F46';
+                statusDiv.style.borderColor = '#10B981';
+            } else {
+                statusDiv.style.backgroundColor = '#FEE2E2';
+                statusDiv.style.color = '#991B1B';
+                statusDiv.style.borderColor = '#EF4444';
+            }
+
+            // Ocultar después de 5 segundos
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // ============================================
+        // INICIALIZAR
+        // ============================================
+        renderTabs();
+        filterCompanies();
+    </script>
+</body>
+</html>
