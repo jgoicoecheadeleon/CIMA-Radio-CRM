@@ -885,7 +885,7 @@
                 <h2 class="modal-title">Agregar Nuevo Cliente</h2>
                 <button class="modal-close" onclick="closeAddClientModal()">✕</button>
             </div>
-            <form onsubmit="saveClient(event)">
+            <form id="addClientForm" onsubmit="saveClient(event)">
                 <div class="form-group">
                     <label class="form-label">Nombre de la Marca/Empresa</label>
                     <input type="text" class="form-input" id="clientName" required>
@@ -906,7 +906,7 @@
                 </div>
 
                 <div class="form-buttons">
-                    <button type="submit" class="btn btn-success">💾 Guardar Cliente</button>
+                    <button type="submit" class="btn btn-success">✅ Crear Cliente</button>
                     <button type="button" class="btn btn-secondary" onclick="closeAddClientModal()">Cancelar</button>
                 </div>
             </form>
@@ -1163,6 +1163,7 @@
                     </div>
 
                     <div class="client-actions">
+                        <button class="edit-btn" onclick="openEditClientModal(${client.id})" style="background: #F59E0B; color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; margin-right: 0.5rem;">✏️ Editar</button>
                         <button class="add-to-initiative-btn" onclick="openAddClientToInitiativeModal(${client.id})">
                             ➕ Agregar a Iniciativa
                         </button>
@@ -1211,6 +1212,9 @@
 
         function closeAddClientModal() {
             document.getElementById('addClientModal').classList.remove('show');
+            // Limpiar atributo de edición y resetear botón
+            document.getElementById('addClientForm').removeAttribute('data-edit-client-id');
+            document.querySelector('#addClientForm button[type="submit"]').textContent = '✅ Crear Cliente';
         }
 
         function renderContactFields() {
@@ -1328,20 +1332,136 @@
                 return;
             }
 
-            const newClient = {
-                id: Date.now(),
-                name,
-                industry,
-                contacts,
-                createdAt: new Date().toISOString(),
-            };
+            // Verificar si estamos editando un cliente existente
+            const editClientId = parseInt(document.getElementById('addClientForm').getAttribute('data-edit-client-id') || '0');
+            
+            if (editClientId) {
+                // EDITAR cliente existente
+                const clientIndex = clients.findIndex(c => c.id === editClientId);
+                if (clientIndex !== -1) {
+                    clients[clientIndex].name = name;
+                    clients[clientIndex].industry = industry;
+                    clients[clientIndex].contacts = contacts;
+                }
+            } else {
+                // CREAR nuevo cliente
+                const newClient = {
+                    id: Date.now(),
+                    name,
+                    industry,
+                    contacts,
+                    createdAt: new Date().toISOString(),
+                };
+                clients.push(newClient);
+            }
 
-            clients.push(newClient);
             saveToStorage();
             closeAddClientModal();
             if (currentMainView === 'clients') {
                 filterClients();
             }
+            
+            // Limpiar atributo de edición
+            document.getElementById('addClientForm').removeAttribute('data-edit-client-id');
+        }
+
+        function openEditClientModal(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            // Llenar los datos del cliente
+            document.getElementById('clientName').value = client.name;
+            document.getElementById('clientIndustry').value = client.industry;
+            document.getElementById('clientIndustryCustom').value = '';
+            document.getElementById('clientIndustryCustom').style.display = 'none';
+            
+            // Llenar dropdown de industrias
+            const selectIndustry = document.getElementById('clientIndustry');
+            selectIndustry.innerHTML = '<option value="">Selecciona una industria...</option>';
+            standardIndustries.forEach(industry => {
+                const option = document.createElement('option');
+                option.value = industry;
+                option.textContent = industry;
+                selectIndustry.appendChild(option);
+            });
+            selectIndustry.value = client.industry;
+            
+            // Si tiene industria personalizada
+            if (!standardIndustries.includes(client.industry)) {
+                selectIndustry.value = 'Otro';
+                document.getElementById('clientIndustryCustom').value = client.industry;
+                document.getElementById('clientIndustryCustom').style.display = 'block';
+            }
+
+            // Llenar contactos
+            contactFieldCount = Math.max(client.contacts.length, 1);
+            document.getElementById('contactsList').innerHTML = '';
+            
+            let html = '';
+            for (let i = 0; i < contactFieldCount; i++) {
+                const contact = client.contacts[i] || {};
+                html += `
+                    <div style="background: #F3F4F6; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.75rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                            <input type="text" class="form-input" placeholder="Nombre" id="contact_firstname_${i}" value="${contact.firstName || ''}" required>
+                            <input type="text" class="form-input" placeholder="Apellido" id="contact_lastname_${i}" value="${contact.lastName || ''}" required>
+                        </div>
+                        <input type="email" class="form-input" placeholder="Email" id="contact_email_${i}" value="${contact.email || ''}" style="margin-top: 0.5rem;" required>
+                        <input type="tel" class="form-input" placeholder="Teléfono" id="contact_phone_${i}" value="${contact.phone || ''}" style="margin-top: 0.5rem;">
+                        
+                        <div style="margin-top: 0.5rem;">
+                            <label style="font-size: 0.875rem; color: #6B7280; display: block; margin-bottom: 0.25rem;">Cargo/Posición</label>
+                            <select class="form-input" id="contact_position_${i}">
+                                <option value="">Selecciona un cargo...</option>
+                            </select>
+                            <input type="text" class="form-input" placeholder="Especifica otro cargo" id="contact_position_custom_${i}" style="display: none; margin-top: 0.5rem;" value="${contact.positionCustom || ''}">
+                        </div>
+                        
+                        <input type="date" class="form-input" placeholder="Fecha de Nacimiento (opcional)" id="contact_birthdate_${i}" value="${contact.birthDate ? contact.birthDate.split('T')[0] : ''}" style="margin-top: 0.5rem;">
+                        
+                        ${contactFieldCount > 1 ? `<button type="button" class="contact-remove" onclick="removeContactField(${i})">Eliminar Contacto</button>` : ''}
+                    </div>
+                `;
+            }
+            document.getElementById('contactsList').innerHTML = html;
+            
+            // Llenar posiciones
+            for (let i = 0; i < contactFieldCount; i++) {
+                const contact = client.contacts[i] || {};
+                const selectPosition = document.getElementById(`contact_position_${i}`);
+                selectPosition.innerHTML = '<option value="">Selecciona un cargo...</option>';
+                standardPositions.forEach(position => {
+                    const option = document.createElement('option');
+                    option.value = position;
+                    option.textContent = position;
+                    selectPosition.appendChild(option);
+                });
+                
+                if (contact.position && standardPositions.includes(contact.position)) {
+                    selectPosition.value = contact.position;
+                } else if (contact.position) {
+                    selectPosition.value = 'Otro';
+                    document.getElementById(`contact_position_custom_${i}`).value = contact.position;
+                    document.getElementById(`contact_position_custom_${i}`).style.display = 'block';
+                }
+                
+                selectPosition.addEventListener('change', function() {
+                    const customInput = document.getElementById(`contact_position_custom_${i}`);
+                    if (this.value === 'Otro') {
+                        customInput.style.display = 'block';
+                        customInput.focus();
+                    } else {
+                        customInput.style.display = 'none';
+                        customInput.value = '';
+                    }
+                });
+            }
+
+            // Cambiar el texto del botón
+            document.getElementById('addClientForm').setAttribute('data-edit-client-id', clientId);
+            document.querySelector('#addClientForm button[type="submit"]').textContent = '💾 Guardar Cambios';
+            
+            document.getElementById('addClientModal').classList.add('show');
         }
 
         function deleteClient(id) {
@@ -1391,13 +1511,42 @@
             const clientId = parseInt(document.getElementById('clientToAddId').value);
             const initiativeId = parseInt(document.getElementById('initiativeSelectForClient').value);
 
+            // Validaciones
+            if (!clientId) {
+                alert('Error: Cliente no válido');
+                return;
+            }
+
+            if (!initiativeId) {
+                alert('Por favor selecciona una iniciativa');
+                return;
+            }
+
             const initiative = initiatives.find(i => i.id === initiativeId);
+            if (!initiative) {
+                alert('Error: Iniciativa no encontrada');
+                return;
+            }
+
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                alert('Error: Cliente no encontrado');
+                return;
+            }
+
+            // Verificar si ya existe
+            if (initiative.proposals && initiative.proposals.find(p => p.clientId === clientId)) {
+                alert('Este cliente ya está en esta iniciativa');
+                return;
+            }
+
+            // Crear propuesta con el primer estado disponible
             if (!initiative.proposals) {
                 initiative.proposals = [];
             }
 
-            // Crear propuesta con el primer estado disponible
-            const firstState = initiative.states[0];
+            const firstState = initiative.states && initiative.states.length > 0 ? initiative.states[0] : { id: 1, name: 'Prospecto' };
+            
             initiative.proposals.push({
                 clientId: clientId,
                 status: firstState.id,
@@ -1410,8 +1559,12 @@
             saveToStorage();
             closeAddClientToInitiativeModal();
             
+            alert(`✅ Cliente "${client.name}" agregado a "${initiative.name}"`);
+            
             if (currentMainView === 'initiatives') {
                 filterCompanies();
+            } else {
+                renderTabs();
             }
         }
 
