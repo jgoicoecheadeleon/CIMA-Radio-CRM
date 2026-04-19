@@ -1223,10 +1223,10 @@
                 html += `
                     <div style="background: #F3F4F6; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.75rem;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                            <input type="text" class="form-input" placeholder="Nombre" id="contact_firstname_${i}" required>
-                            <input type="text" class="form-input" placeholder="Apellido" id="contact_lastname_${i}" required>
+                            <input type="text" class="form-input" placeholder="Nombre" id="contact_firstname_${i}">
+                            <input type="text" class="form-input" placeholder="Apellido" id="contact_lastname_${i}">
                         </div>
-                        <input type="email" class="form-input" placeholder="Email" id="contact_email_${i}" style="margin-top: 0.5rem;" required>
+                        <input type="email" class="form-input" placeholder="Email" id="contact_email_${i}" style="margin-top: 0.5rem;">
                         <input type="tel" class="form-input" placeholder="Teléfono" id="contact_phone_${i}" style="margin-top: 0.5rem;">
                         
                         <div style="margin-top: 0.5rem;">
@@ -1403,10 +1403,10 @@
                 html += `
                     <div style="background: #F3F4F6; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.75rem;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                            <input type="text" class="form-input" placeholder="Nombre" id="contact_firstname_${i}" value="${contact.firstName || ''}" required>
-                            <input type="text" class="form-input" placeholder="Apellido" id="contact_lastname_${i}" value="${contact.lastName || ''}" required>
+                            <input type="text" class="form-input" placeholder="Nombre" id="contact_firstname_${i}" value="${contact.firstName || ''}">
+                            <input type="text" class="form-input" placeholder="Apellido" id="contact_lastname_${i}" value="${contact.lastName || ''}">
                         </div>
-                        <input type="email" class="form-input" placeholder="Email" id="contact_email_${i}" value="${contact.email || ''}" style="margin-top: 0.5rem;" required>
+                        <input type="email" class="form-input" placeholder="Email" id="contact_email_${i}" value="${contact.email || ''}" style="margin-top: 0.5rem;">
                         <input type="tel" class="form-input" placeholder="Teléfono" id="contact_phone_${i}" value="${contact.phone || ''}" style="margin-top: 0.5rem;">
                         
                         <div style="margin-top: 0.5rem;">
@@ -1485,15 +1485,28 @@
         // AGREGAR CLIENTE A INICIATIVA
         // ============================================
         function openAddClientToInitiativeModal(clientId) {
-            document.getElementById('clientToAddId').value = clientId;
+            const numClientId = parseInt(clientId);
+            document.getElementById('clientToAddId').value = numClientId;
             
             const selectEl = document.getElementById('initiativeSelectForClient');
             selectEl.innerHTML = '<option value="">Elige una iniciativa...</option>';
             
-            const client = clients.find(c => c.id === clientId);
+            // Verificar que el cliente existe
+            const client = clients.find(c => c.id === numClientId);
+            if (!client) {
+                alert(`Error: Cliente con ID ${numClientId} no encontrado`);
+                return;
+            }
+            
+            // Verificar que hay iniciativas
+            if (!initiatives || initiatives.length === 0) {
+                alert('No hay iniciativas disponibles. Por favor crea una iniciativa primero.');
+                return;
+            }
+            
             initiatives.forEach(init => {
                 // Verificar si ya está en esta iniciativa
-                const exists = init.proposals && init.proposals.find(p => p.clientId === clientId);
+                const exists = init.proposals && init.proposals.find(p => p.clientId === numClientId);
                 if (!exists) {
                     selectEl.innerHTML += `<option value="${init.id}">${init.name}</option>`;
                 }
@@ -1508,29 +1521,35 @@
 
         function addClientToInitiative(e) {
             e.preventDefault();
-            const clientId = parseInt(document.getElementById('clientToAddId').value);
-            const initiativeId = parseInt(document.getElementById('initiativeSelectForClient').value);
+            const clientIdStr = document.getElementById('clientToAddId').value;
+            const initiativeIdStr = document.getElementById('initiativeSelectForClient').value;
+            
+            const clientId = parseInt(clientIdStr);
+            const initiativeId = parseInt(initiativeIdStr);
 
             // Validaciones
-            if (!clientId) {
+            if (!clientIdStr || isNaN(clientId)) {
                 alert('Error: Cliente no válido');
                 return;
             }
 
-            if (!initiativeId) {
+            if (!initiativeIdStr || isNaN(initiativeId)) {
                 alert('Por favor selecciona una iniciativa');
                 return;
             }
 
-            const initiative = initiatives.find(i => i.id === initiativeId);
-            if (!initiative) {
-                alert('Error: Iniciativa no encontrada');
+            // Buscar cliente
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                console.error('Cliente no encontrado. ID buscado:', clientId, 'Clientes disponibles:', clients.map(c => c.id));
+                alert(`Error: Cliente no encontrado (ID: ${clientId}). Intenta recargar la página.`);
                 return;
             }
 
-            const client = clients.find(c => c.id === clientId);
-            if (!client) {
-                alert('Error: Cliente no encontrado');
+            // Buscar iniciativa
+            const initiative = initiatives.find(i => i.id === initiativeId);
+            if (!initiative) {
+                alert('Error: Iniciativa no encontrada');
                 return;
             }
 
@@ -1547,22 +1566,30 @@
 
             const firstState = initiative.states && initiative.states.length > 0 ? initiative.states[0] : { id: 1, name: 'Prospecto' };
             
-            initiative.proposals.push({
+            const newProposal = {
                 clientId: clientId,
                 status: firstState.id,
                 statusName: firstState.name,
                 notes: '',
                 estimatedValue: '',
                 createdAt: new Date().toISOString(),
-            });
+            };
+            
+            initiative.proposals.push(newProposal);
 
+            // Guardar a storage ANTES de cualquier otra cosa
             saveToStorage();
+            
+            // Cerrar modal
             closeAddClientToInitiativeModal();
             
+            // Mostrar confirmación
             alert(`✅ Cliente "${client.name}" agregado a "${initiative.name}"`);
             
+            // Actualizar vistas
             if (currentMainView === 'initiatives') {
                 filterCompanies();
+                renderTabs();
             } else {
                 renderTabs();
             }
